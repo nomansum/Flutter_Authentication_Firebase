@@ -1,4 +1,5 @@
 import 'package:auth/services/auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class SignIn extends StatefulWidget {
@@ -17,6 +18,10 @@ class _SignInState extends State<SignIn> {
 
   final emailEditingController = TextEditingController();
   final passwordEditingController = TextEditingController();
+  String error = "";
+
+  final _formkey = GlobalKey<FormState>();
+
   String email = "";
   String password = "";
   @override
@@ -47,12 +52,20 @@ class _SignInState extends State<SignIn> {
       body: Container(
         padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0),
         child: Form(
+          key: _formkey,
           child: Column(
             children: [
               SizedBox(
                 height: 20.0,
               ),
               TextFormField(
+                validator: (value) {
+                  if (value != null && value.isEmpty) {
+                    return "enter an email";
+                  } else {
+                    return null;
+                  }
+                },
                 onChanged: (value) {
                   setState(() {
                     email = value;
@@ -65,6 +78,13 @@ class _SignInState extends State<SignIn> {
               ),
               TextFormField(
                 obscureText: true,
+                validator: (value) {
+                  if (value != null && value.length < 6) {
+                    return "enter password 6 char long";
+                  } else {
+                    return null;
+                  }
+                },
                 onChanged: (value) {
                   setState(() {
                     password = value;
@@ -80,10 +100,26 @@ class _SignInState extends State<SignIn> {
                   backgroundColor: MaterialStateProperty.all(Colors.amber[800]),
                 ),
                 onPressed: () async {
-                  print(email);
-                  print(password);
-                  print(emailEditingController.text);
-                  print(passwordEditingController.text);
+                  if (_formkey.currentState != null &&
+                      _formkey.currentState!.validate()) {
+                    try {
+                      // error = "here";
+                      // setState(() {});
+                      var me = this;
+
+                      dynamic result =
+                          _auth.signInWithEmailAndPassword(email, password);
+                    } on FirebaseException catch (e) {
+                      error = e.code;
+                      // print("HHHHHHHHHHHHHHH");
+                      this.setState(() {});
+                    } catch (e) {
+                      print("HHHHHHHHHHHHHHH");
+
+                      print(e);
+                      this.setState(() {});
+                    }
+                  }
                 },
                 child: Text(
                   'Sign In',
@@ -91,6 +127,13 @@ class _SignInState extends State<SignIn> {
                     color: Colors.white,
                   ),
                 ),
+              ),
+              SizedBox(
+                height: 8.0,
+              ),
+              Text(
+                error,
+                style: TextStyle(color: Colors.red, fontSize: 14.0),
               )
             ],
           ),
