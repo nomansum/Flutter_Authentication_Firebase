@@ -15,8 +15,10 @@ class _RegisterState extends State<Register> {
   String password = "";
   String email = "";
   final AuthService _auth = AuthService();
+  final _formkey = GlobalKey<FormState>();
   final emailEditingController = TextEditingController();
   final passwordEditingController = TextEditingController();
+  String error = "";
   @override
   void dispose() {
     // TODO: implement dispose
@@ -45,12 +47,20 @@ class _RegisterState extends State<Register> {
       body: Container(
         padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 50.0),
         child: Form(
+          key: _formkey,
           child: Column(
             children: [
               SizedBox(
                 height: 20.0,
               ),
               TextFormField(
+                validator: (value) {
+                  if (value != null && value.isEmpty) {
+                    return "enter an email";
+                  } else {
+                    return null;
+                  }
+                },
                 onChanged: (value) {
                   setState(() {
                     email = value;
@@ -62,6 +72,13 @@ class _RegisterState extends State<Register> {
                 height: 20.0,
               ),
               TextFormField(
+                validator: (value) {
+                  if (value != null && value.length < 6) {
+                    return "enter password 6 char long";
+                  } else {
+                    return null;
+                  }
+                },
                 obscureText: true,
                 onChanged: (value) {
                   setState(() {
@@ -78,17 +95,30 @@ class _RegisterState extends State<Register> {
                   backgroundColor: MaterialStateProperty.all(Colors.amber[800]),
                 ),
                 onPressed: () async {
-                  print(email);
-                  print(password);
-                  print(emailEditingController.text);
-                  print(passwordEditingController.text);
+                  if (_formkey.currentState != null &&
+                      _formkey.currentState!.validate()) {
+                    dynamic result = await _auth.registerWithEmailAndPassword(
+                        email, password);
+                    if (result == null) {
+                      setState(() {
+                        error = "Please Supply A Valid Email";
+                      });
+                    }
+                  }
                 },
                 child: Text(
-                  'Sign In',
+                  'Sign Up',
                   style: TextStyle(
                     color: Colors.white,
                   ),
                 ),
+              ),
+              SizedBox(
+                height: 12.0,
+              ),
+              Text(
+                error,
+                style: TextStyle(color: Colors.red, fontSize: 14.0),
               )
             ],
           ),
